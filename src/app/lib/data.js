@@ -226,3 +226,36 @@ export async function getUser(email) {
     throw new Error('Failed to fetch user.');
   }
 }
+
+
+export async function getInvoices(query, currentPage) {
+  const ITEMS_PER_PAGE = 10;
+  const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+
+  const invoices = await sql`
+    SELECT invoices.id, invoices.amount, invoices.date, invoices.status,
+           customers.name, customers.email, customers.image_url
+    FROM invoices
+    JOIN customers ON invoices.customer_id = customers.id
+    WHERE customers.name ILIKE ${`%${query}%`}
+       OR customers.email ILIKE ${`%${query}%`}
+       OR invoices.status ILIKE ${`%${query}%`}
+    ORDER BY invoices.date DESC
+    LIMIT ${ITEMS_PER_PAGE}
+    OFFSET ${offset};
+  `;
+
+  const count = await sql`
+    SELECT COUNT(*) AS total
+    FROM invoices
+    JOIN customers ON invoices.customer_id = customers.id
+    WHERE customers.name ILIKE ${`%${query}%`}
+       OR customers.email ILIKE ${`%${query}%`}
+       OR invoices.status ILIKE ${`%${query}%`};
+  `;
+
+  return {
+    invoices: invoices.rows,
+    totalMatchingRecords: Number(count.rows[0].total),
+  };
+}
