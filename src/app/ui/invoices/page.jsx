@@ -1,6 +1,7 @@
 import Pagination from '@/app/ui/invoices/pagination';
 import Search from '@/app/ui/invoices/search';
-import Table from '@/app/ui/invoices/table';
+import InvoicesTable from '@/app/ui/invoices/InvoicesTable';
+//import Table from '@/app/ui/invoices/table';
 import { CreateInvoice } from '@/app/ui/invoices/buttons';
 import { lusitana } from '@/app/ui/fonts';
 import { Suspense } from 'react';
@@ -26,7 +27,8 @@ export default async function Page({ searchParams }) {
         <CreateInvoice />
       </div>
       <Suspense key={query + currentPage} fallback={<InvoicesTableSkeleton />}>
-        <Table query={query} currentPage={currentPage} />
+       {/* <Table query={query} currentPage={currentPage} />*/}
+       <InvoicesTable invoices={invoices} />
       </Suspense>
       <div className="mt-5 flex w-full justify-center">
         <Pagination totalPages={totalPages} />

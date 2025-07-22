@@ -74,3 +74,22 @@ export async function POST(request) {
     );
   }
 }
+export async function PUT(request, { params }) {
+  const id = params.id;
+  const { customerId, amount, status } = await request.json();
+  const amountInCents = Math.round(parseFloat(amount) * 100);
+
+  try {
+    await sql`
+      UPDATE invoices
+      SET customer_id = ${customerId},
+          amount = ${amountInCents},
+          status = ${status}
+      WHERE id = ${id};
+    `;
+    return new Response(JSON.stringify({ message: 'Updated' }), { status: 200 });
+  } catch (error) {
+    console.error(error);
+    return new Response(JSON.stringify({ error: 'Failed to update invoice' }), { status: 500 });
+  }
+}

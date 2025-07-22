@@ -259,3 +259,35 @@ export async function getInvoices(query, currentPage) {
     totalMatchingRecords: Number(count.rows[0].total),
   };
 }
+/**
+ * Get a single invoice by its ID
+ * @param {string} id
+ * @returns {Promise<Object|null>} invoice or null if not found
+ */
+export async function getInvoiceById(id) {
+  try {
+    const result = await sql`
+      SELECT * FROM invoices WHERE id = ${id}
+    `;
+    return result.rows[0] || null;
+  } catch (error) {
+    console.error('Error fetching invoice by ID:', error);
+    return null;
+  }
+}
+
+/**
+ * Get all customers for dropdowns
+ * @returns {Promise<Array>} list of customers
+ */
+export async function getCustomers() {
+  try {
+    const result = await sql`
+      SELECT id, name FROM customers ORDER BY name ASC
+    `;
+    return result.rows;
+  } catch (error) {
+    console.error('Error fetching customers:', error);
+    return [];
+  }
+}

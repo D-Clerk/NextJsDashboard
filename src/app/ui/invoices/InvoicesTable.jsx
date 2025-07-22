@@ -45,7 +45,7 @@ export default function InvoicesTable({ invoices }) {
             </td>
             <td className="border border-gray-300 p-2 capitalize">{status}</td>
             <td className="border border-gray-300 p-2 text-center">
-              <Link href={`/dashboard/invoices/${id}/edit`}>
+              <Link href={`/dashboard/invoices/${id}/edit`} className="text-blue-500 hover:underline">
                 <PencilIcon className="w-5 h-5 inline text-blue-600 hover:text-blue-800" />
               </Link>
             </td>
