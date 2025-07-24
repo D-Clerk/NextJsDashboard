@@ -1,35 +1,59 @@
 import Credentials from 'next-auth/providers/credentials';
-import bcrypt from 'bcrypt';
 import { neon } from '@neondatabase/serverless';
+import bcrypt from 'bcrypt';
 
 const sql = neon(process.env.DATABASE_URL);
 
-async function getUser(email) {
+async function getUserByEmail(email) {
   try {
-    const result = await sql`SELECT * FROM users WHERE email=${email}`;
-    console.log('SQL query result:', result);
-
-    // result is an array of rows, so check length directly
-    if (!result || result.length === 0) {
-      console.log('No user found with that email');
-      return null;
-    }
-    return result[0];
+    const result = await sql`SELECT * FROM users WHERE email = ${email}`;
+    return result?.[0] || null;
   } catch (error) {
-    console.error('Failed to fetch user:', error);
+    console.error('Database error:', error);
     return null;
   }
 }
 
 export const authConfig = {
-  pages: {
-    signIn: '/login', // Redirect here on sign in required
+  providers: [
+    Credentials({
+      name: 'Credentials',
+      credentials: {
+        email: { label: 'Email', type: 'email', placeholder: 'email@example.com' },
+        password: { label: 'Password', type: 'password' },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) return null;
+
+        const user = await getUserByEmail(credentials.email);
+        if (!user) return null;
+
+        const isValid = await bcrypt.compare(credentials.password, user.password);
+        if (!isValid) return null;
+
+        return {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+        };
+      },
+    }),
+  ],
+
+  session: {
+    strategy: 'jwt',
   },
+
   callbacks: {
+    async jwt({ token, user }) {
+      if (user) token.user = user;
+      return token;
+    },
+    async session({ session, token }) {
+      session.user = token.user;
+      return session;
+    },
     async redirect({ url, baseUrl }) {
-      if (url === baseUrl) {
-        return '/login';
-      }
       return url.startsWith(baseUrl) ? url : baseUrl;
     },
     authorized({ auth, request: { nextUrl } }) {
@@ -40,38 +64,8 @@ export const authConfig = {
       return true;
     },
   },
-  providers: [
-    Credentials({
-      name: 'Credentials',
-      credentials: {
-        email: { label: "Email", type: "email", placeholder: "email@example.com" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
 
-        console.log('Authorize called with credentials:', credentials);
-
-        const user = await getUser(credentials.email);
-        console.log('User fetched from DB:', user);
-
-        if (!user) {
-          console.log('No user found with that email');
-          return null;
-        }
-
-        const passwordsMatch = await bcrypt.compare(credentials.password, user.password);
-        if (!passwordsMatch) {
-          console.log('Password mismatch');
-          return null;
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-        };
-      },
-    }),
-  ],
+  pages: {
+    signIn: '/login',
+  },
 };
