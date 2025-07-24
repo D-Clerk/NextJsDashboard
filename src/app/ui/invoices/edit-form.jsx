@@ -29,7 +29,7 @@ export default function EditInvoiceForm({ invoice, customers }) {
     });
 
     router.refresh();
-    router.push('/dashboard/invoices');
+    router.push('/ui/invoices');
   };
 
   const handleCancel = () => {

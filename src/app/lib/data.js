@@ -165,12 +165,13 @@ export async function fetchInvoiceById(id) {
   }
 }
 
+
 export async function fetchCustomers() {
   try {
     const data = await sql`
       SELECT
         id,
-        name
+        name, email
       FROM customers
       ORDER BY name ASC
     `;
@@ -215,6 +216,15 @@ export async function fetchFilteredCustomers(query) {
     console.error('Database Error:', err);
     throw new Error('Failed to fetch customer table.');
   }
+}
+export async function fetchCustomerById(id) {
+  const data = await sql`
+    SELECT id, name, email
+    FROM customers
+    WHERE id = ${id}
+  `;
+
+  return data.rows[0];
 }
 
 export async function getUser(email) {

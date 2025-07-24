@@ -1,54 +1,76 @@
-// import AcmeLogo from '@/app/ui/acme-logo';
-import { ArrowRightIcon } from '@heroicons/react/24/outline';
-import Link from 'next/link';
-import styles from "@/app/ui/home.module.css"
-import Image from 'next/image';
-import { lusitana } from '../app/ui/fonts.js';
-export default function Page() {
-  return (
-    <main className="flex min-h-screen flex-col p-6">
-      <div className="flex h-20 shrink-0 items-end rounded-lg bg-blue-500 p-4 md:h-52">
-        {/* <AcmeLogo /> */}
-      </div>
-      <div className="mt-4 flex grow flex-col gap-4 md:flex-row">
-        <div className="flex flex-col justify-center gap-6 rounded-lg bg-gray-50 px-6 py-10 md:w-2/5 md:px-20">
+'use client';
 
-        <div 
-    className="shape"/>
-          <p className={`${lusitana.className} antialiased text-xl text-gray-800 md:text-3xl md:leading-normal`}>
-            <strong>Welcome to Acme.</strong> This is the example for the{' '}
-            <a href="https://nextjs.org/learn/" className="text-blue-500">
-                Next.js Learn Course
-            </a>
-            , brought to you by Vercel.
-          </p>
-          <Link
-            href="/login"
-            className="flex items-center gap-5 self-start rounded-lg bg-blue-500 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-400 md:text-base"
-          >
-            <span>Log in</span> <ArrowRightIcon className="w-5 md:w-6" />
-          </Link>
-        </div>
-        <div className="flex items-center justify-center p-6 md:w-3/5 md:px-28 md:py-12">
-          {/* Add Hero Images Here */}
-          <Image
-              src="/hero-desktop.png"
-              width={1000}
-              height={760}
-              className="hidden md:block"
-              alt="Screenshots of the dashboard project showing desktop version"
+import { useState } from 'react';
+import { signIn } from 'next-auth/react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import styles from '@/app/ui/home.module.css';
+import { lusitana } from '../app/ui/fonts.js';
+
+export default function Page() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl') || '/ui/dashboard';
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    setErrorMsg('');
+    // Attempt sign in
+    const res = await signIn('credentials', {
+      redirect: false,
+      email,
+      password,
+      callbackUrl,
+    });
+
+    if (res?.error) {
+      setErrorMsg('Invalid email or password');
+    } else if (res?.ok) {
+      router.push(callbackUrl);
+    }
+  }
+
+  return (
+    <main className="flex min-h-screen flex-col p-6 items-center justify-center bg-gray-50">
+      <div className="w-full max-w-md rounded-lg bg-white p-8 shadow">
+        <h1 className={`${lusitana.className} mb-6 text-2xl font-bold text-gray-900`}>
+          Log in to Acme
+        </h1>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <label htmlFor="email" className="text-sm font-semibold text-gray-700">
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            required
+            placeholder="email@example.com"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            className="rounded border border-gray-300 p-2"
           />
-        </div>
-        <div className="flex items-center justify-center p-6 md:w-3/5 md:px-28 md:py-12">
-            {/* Add Hero Images Here */}
-            <Image
-                src="/hero-mobile.png"
-                width={560}
-                height={620}
-                className="block md:hidden"
-                alt="Screenshots of the dashboard project showing mobile version"
-            />
-        </div>
+          <label htmlFor="password" className="text-sm font-semibold text-gray-700">
+            Password
+          </label>
+          <input
+            id="password"
+            type="password"
+            required
+            placeholder="Your password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            className="rounded border border-gray-300 p-2"
+          />
+          {errorMsg && <p className="text-red-600 text-sm">{errorMsg}</p>}
+          <button
+            type="submit"
+            className="mt-4 rounded bg-blue-600 py-2 text-white hover:bg-blue-500"
+          >
+            Log In
+          </button>
+        </form>
       </div>
     </main>
   );

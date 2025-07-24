@@ -1,32 +1,33 @@
-import { NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
 
-export async function GET(request, { params }) {
-  const { id } = params;
-
+export async function PUT(request, { params }) {
   try {
-    const result = await sql`
-      SELECT
-        invoices.id,
-        invoices.amount,
-        invoices.date,
-        invoices.status,
-        customers.name,
-        customers.email,
-        customers.image_url
-      FROM invoices
-      JOIN customers ON invoices.customer_id = customers.id
-      WHERE invoices.id = ${id}
-      LIMIT 1;
+    const { customerId, amount, status } = await request.json();
+
+    await sql`
+      UPDATE invoices
+      SET customer_id = ${customerId}, amount = ${amount * 100}, status = ${status}
+      WHERE id = ${params.id}
     `;
 
-    if (result.rows.length === 0) {
-      return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
-    }
-
-    return NextResponse.json(result.rows[0]);
+    return new Response(JSON.stringify({ success: true }), { status: 200 });
   } catch (error) {
-    console.error('Error fetching invoice:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error('PUT error:', error);
+    return new Response(JSON.stringify({ error: 'Failed to update invoice' }), {
+      status: 500,
+    });
+  }
+}
+
+export async function DELETE(request, { params }) {
+  try {
+    await sql`DELETE FROM invoices WHERE id = ${params.id}`;
+
+    return new Response(JSON.stringify({ success: true }), { status: 200 });
+  } catch (error) {
+    console.error('DELETE error:', error);
+    return new Response(JSON.stringify({ error: 'Failed to delete invoice' }), {
+      status: 500,
+    });
   }
 }
