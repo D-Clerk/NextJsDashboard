@@ -1,14 +1,14 @@
-// src/app/customers/page.jsx
+// src/app/ui/customers/page.jsx
+export const dynamic = 'force-dynamic';
 import Link from 'next/link';
-import { PlusIcon } from '@heroicons/react/20/solid'; // Optional icon
+import { PlusIcon } from '@heroicons/react/20/solid';
 import { fetchFilteredCustomers } from '@/app/lib/data';
 import CustomersTable from '@/app/ui/customers/table';
 import Search from '@/app/ui/customers/search';
 
-// This is a server component
 export default async function Page({ searchParams }) {
   const query = searchParams?.query || '';
-  const customers = await fetchFilteredCustomers(query); // Filter based on query
+  const customers = await fetchFilteredCustomers(query);
 
   return (
     <div className="space-y-6">

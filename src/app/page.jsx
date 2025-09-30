@@ -1,34 +1,31 @@
+// src/app/page.jsx
 'use client';
 
 import { useState } from 'react';
 import { signIn } from 'next-auth/react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import styles from '@/app/ui/home.module.css';
-import { lusitana } from '../app/ui/fonts.js';
+import { useRouter } from 'next/navigation';
+import { lusitana } from '@/app/ui/fonts.js';
 
 export default function Page() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl') || '/ui/dashboard';
 
   async function handleSubmit(e) {
     e.preventDefault();
     setErrorMsg('');
-    // Attempt sign in
+
     const res = await signIn('credentials', {
       redirect: false,
       email,
       password,
-      callbackUrl,
     });
 
     if (res?.error) {
       setErrorMsg('Invalid email or password');
-    } else if (res?.ok) {
-      router.push(callbackUrl);
+    } else {
+      router.push('/ui/dashboard'); // redirect on success
     }
   }
 
